@@ -17,7 +17,7 @@ COPY ssl ./ssl
 COPY src ./src
 
 # Expose the port the app runs on
-EXPOSE 5000
+EXPOSE 5020
 
 # Run the application
 CMD ["python", "app.py"]
