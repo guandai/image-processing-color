@@ -24,7 +24,7 @@ function processImage() {
     const formData = new FormData();
     formData.append('image', file);
 
-    status.textContent = 'Processing image...';
+    status.textContent = '正在处理...';
 
     fetch('/process-image', {
         method: 'POST',
@@ -37,12 +37,12 @@ function processImage() {
             const processedImageUrl = data.processedImageUrl;
             document.getElementById('processedImage').src = processedImageUrl;
             document.getElementById('processedImage').style.display = 'block';
-            status.textContent = 'Image processed successfully!';
+            status.textContent = '处理成功!';
 
             // Set up the download button
             downloadButton.href = processedImageUrl;
             downloadButton.download = 'processed_image.jpg';
-            downloadButton.style.display = 'block';
+            downloadButton.style.display = 'inline-block';  // Show the download button
         } else {
             status.textContent = `Error: ${data.error}`;
             downloadButton.style.display = 'none';
@@ -50,13 +50,7 @@ function processImage() {
     })
     .catch(error => {
         console.error('Error:', error);
-        status.textContent = 'Error uploading or processing the image.';
+        status.textContent = '处理出错.';
         downloadButton.style.display = 'none';
     });
-}
-
-// Function to download the processed image when the download button is clicked
-function downloadImage() {
-    const downloadButton = document.getElementById('downloadButton');
-    downloadButton.click();
 }
