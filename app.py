@@ -1,64 +1,40 @@
-from flask import Flask, request, send_file, render_template
-import cv2
-import numpy as np
-import random
+from flask import Flask, request, send_file, render_template, jsonify
 import os
+from process_green_areas import process_green_areas
 
 app = Flask(__name__, static_folder='static', template_folder='static')
 
+# Paths for temporary files
+INPUT_PATH = 'input_image.jpg'
+
 @app.route('/')
 def index():
+    """Render the main page for image upload and processing."""
     return render_template('index.html')
 
 @app.route('/process-image', methods=['POST'])
 def process_image():
-    if 'file' not in request.files:
-        return "No file uploaded", 400
+    """Handle image upload, process the image, and return the result as JSON."""
+    if 'image' not in request.files:
+        return jsonify({"success": False, "error": "No file uploaded"}), 400
 
-    # Save the uploaded file
-    file = request.files['file']
-    input_path = 'input_image.jpg'
-    file.save(input_path)
+    # Save uploaded file
+    file = request.files['image']
+    file.save(INPUT_PATH)
 
-    # Load the uploaded image
-    new_area_image = cv2.imread(input_path)
-    if new_area_image is None:
-        return "Invalid image", 400
-
-    # Convert the image to HSV color space to better isolate the green lines
-    hsv_image = cv2.cvtColor(new_area_image, cv2.COLOR_BGR2HSV)
-
-    # Define HSV range for green color
-    lower_green = np.array([40, 40, 40])
-    upper_green = np.array([80, 255, 255])
-
-    # Create a mask that isolates the green lines
-    green_mask = cv2.inRange(hsv_image, lower_green, upper_green)
-
-    # Dilate the green lines mask
-    kernel_green = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
-    dilated_green_lines = cv2.dilate(green_mask, kernel_green, iterations=2)
-
-    # Find contours based on the green lines mask
-    contours_green_divisions, _ = cv2.findContours(cv2.bitwise_not(dilated_green_lines), 
-                                                   cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    # Create an overlay to fill each detected area with a unique color
-    overlay_colored_areas = new_area_image.copy()
-    for contour in contours_green_divisions:
-        color_area = [random.randint(0, 255) for _ in range(3)]
-        cv2.drawContours(overlay_colored_areas, [contour], -1, color_area, thickness=cv2.FILLED)
-
-    # Blend the overlay with the original image
-    output_colored_areas = cv2.addWeighted(overlay_colored_areas, 0.4, new_area_image, 0.6, 0)
-    output_path = 'output_image.jpg'
-    cv2.imwrite(output_path, output_colored_areas)
-
-    # Send the processed image as a response
-    return send_file(output_path, mimetype='image/jpeg', as_attachment=True, download_name="processed_image.jpg")
-
+    try:
+        # Process the image and get the output path
+        processed_image_path = process_green_areas(INPUT_PATH)
+        
+        # Send JSON response with processed image URL
+        # The URL should be relative to the static folder
+        return jsonify({"success": True, "processedImageUrl": f"/{processed_image_path}"})
+    except ValueError as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+    finally:
+        # Clean up temporary files
+        if os.path.exists(INPUT_PATH):
+            os.remove(INPUT_PATH)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, ssl_context=('/app/fullchain.pem',
-                                                   '/app/privkey.pem'))
-
+    app.run(host='0.0.0.0', port=5020)

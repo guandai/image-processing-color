@@ -1,39 +1,62 @@
-async function processImage() {
+document.getElementById('fileInput').addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+            document.getElementById('originalImage').src = reader.result;
+            document.getElementById('originalImage').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+function processImage() {
     const fileInput = document.getElementById('fileInput');
     const status = document.getElementById('status');
+    const downloadButton = document.getElementById('downloadButton');
+    
     if (!fileInput.files.length) {
-        status.textContent = "Please select a file first!";
+        status.textContent = 'Please select an image file to upload.';
         return;
     }
 
-    status.textContent = "Processing...";
-
-    // Prepare the file for upload
+    const file = fileInput.files[0];
     const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
+    formData.append('image', file);
 
-    try {
-        const response = await fetch('/process-image', {
-            method: 'POST',
-            body: formData,
-        });
+    status.textContent = 'Processing image...';
 
-        if (response.ok) {
-            // Create a download link and automatically click it to download
-            const blob = await response.blob();
-            const downloadUrl = URL.createObjectURL(blob);
-            const downloadLink = document.createElement('a');
-            downloadLink.href = downloadUrl;
-            downloadLink.download = 'processed_image.jpg';
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
+    fetch('/process-image', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show the processed image
+            const processedImageUrl = data.processedImageUrl;
+            document.getElementById('processedImage').src = processedImageUrl;
+            document.getElementById('processedImage').style.display = 'block';
+            status.textContent = 'Image processed successfully!';
 
-            status.textContent = "Download complete!";
+            // Set up the download button
+            downloadButton.href = processedImageUrl;
+            downloadButton.download = 'processed_image.jpg';
+            downloadButton.style.display = 'block';
         } else {
-            status.textContent = "Error processing the image.";
+            status.textContent = `Error: ${data.error}`;
+            downloadButton.style.display = 'none';
         }
-    } catch (error) {
-        status.textContent = "Error: " + error.message;
-    }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        status.textContent = 'Error uploading or processing the image.';
+        downloadButton.style.display = 'none';
+    });
+}
+
+// Function to download the processed image when the download button is clicked
+function downloadImage() {
+    const downloadButton = document.getElementById('downloadButton');
+    downloadButton.click();
 }
