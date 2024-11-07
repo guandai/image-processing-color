@@ -22,6 +22,6 @@ docker stop $CONTAINER_NAME
 docker rm $CONTAINER_NAME
 
 # Step 6: Run a new container with the updated image
-docker run -d --name $CONTAINER_NAME -p 5000:5000 $DOCKER_USERNAME/$IMAGE_NAME
+docker run -d --name $CONTAINER_NAME -p 5020:5020 $DOCKER_USERNAME/$IMAGE_NAME
 
 echo "Deployment complete. The new container is running."

@@ -1,6 +1,6 @@
 from flask import Flask, request, send_file, render_template, jsonify
 import os
-from src/process_green_areas import process_green_areas
+from src.process_green_areas import process_green_areas
 
 app = Flask(__name__, static_folder='static', template_folder='static')
 
