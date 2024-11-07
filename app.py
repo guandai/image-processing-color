@@ -57,5 +57,8 @@ def process_image():
     # Send the processed image as a response
     return send_file(output_path, mimetype='image/jpeg', as_attachment=True, download_name="processed_image.jpg")
 
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, ssl_context=('/app/fullchain.pem',
+                                                   '/app/privkey.pem'))
+
