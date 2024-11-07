@@ -7,14 +7,14 @@ WORKDIR /app
 # Copy the requirements file into the container
 COPY requirements.txt .
 
-COPY fullchain.pem .
-COPY privkey.pem .
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the app code and static files into the container
 COPY app.py .
 COPY static ./static
+COPY ssl ./ssl
+COPY src ./src
 
 # Expose the port the app runs on
 EXPOSE 5000

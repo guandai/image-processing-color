@@ -1,6 +1,6 @@
 from flask import Flask, request, send_file, render_template, jsonify
 import os
-from process_green_areas import process_green_areas
+from src/process_green_areas import process_green_areas
 
 app = Flask(__name__, static_folder='static', template_folder='static')
 
@@ -37,4 +37,4 @@ def process_image():
             os.remove(INPUT_PATH)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5020)
+    app.run(host='0.0.0.0', port=5020, ssl_context=('ssl/fullchain.pem', 'ssl/privkey.pem'))
